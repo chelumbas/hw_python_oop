@@ -1,10 +1,17 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from typing import List
 
 
 @dataclass
 class InfoMessage:
     """Информационное сообщение о тренировке."""
-    CALORIES_MESSAGE = 'Потрачено ккал: {calories:.3f}.'
+    MESSAGE = (
+        'Тип тренировки: {training_type}; '
+        'Длительность: {duration:.3f} ч.; '
+        'Дистанция: {distance:.3f} км; '
+        'Ср. скорость: {speed:.3f} км/ч; '
+        'Потрачено ккал: {calories:.3f}.'
+    )
     training_type: str
     duration: float
     distance: float
@@ -13,13 +20,7 @@ class InfoMessage:
 
     def get_message(self) -> str:
         """Возвращает сообщение о результатах тренировки."""
-        return (
-            f'Тип тренировки: {self.training_type}; '
-            f'Длительность: {self.duration:.3f} ч.; '
-            f'Дистанция: {self.distance:.3f} км; '
-            f'Ср. скорость: {self.speed:.3f} км/ч; '
-            f'{self.CALORIES_MESSAGE.format(calories=self.calories)}'
-        )
+        return self.MESSAGE.format(**asdict(self))
 
 
 @dataclass
@@ -30,8 +31,8 @@ class Training:
     MIN_IN_H = 60
     LEN_STEP = 0.65
     action: int
-    duration: float
-    weight: float
+    duration: int
+    weight: int
 
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
@@ -84,9 +85,9 @@ class SportsWalking(Training):
     def __init__(
             self,
             action: int,
-            duration: float,
-            weight: float,
-            height: float
+            duration: int,
+            weight: int,
+            height: int
     ) -> None:
         super().__init__(action, duration, weight)
         self.height = height
@@ -95,7 +96,7 @@ class SportsWalking(Training):
         """Получить количество затраченных калорий."""
         return (
             (self.CALORIES_WEIGHT_MULTIPLIER * self.weight
-             + ((self.get_mean_speed() * self.KMH_IN_MSEC)**2
+             + ((self.get_mean_speed() * self.KMH_IN_MSEC) ** 2
                 / (self.height / self.CM_IN_M))
              * self.CALORIES_SPEED_HEIGHT_MULTIPLIER
              * self.weight) * (self.duration * self.MIN_IN_H)
@@ -112,8 +113,8 @@ class Swimming(Training):
     def __init__(
             self,
             action: int,
-            duration: float,
-            weight: float,
+            duration: int,
+            weight: int,
             length_pool: int,
             count_pool: int
     ) -> None:
@@ -135,7 +136,7 @@ class Swimming(Training):
         )
 
 
-def read_package(workout_type: str, data: list) -> Training:
+def read_package(workout_type: str, data: List[int]) -> Training:
     """Прочитать данные полученные от датчиков."""
     type_training = {
         'SWM': Swimming,
